@@ -1,0 +1,1446 @@
+<!-- Toast Notification Overlay -->
+<div class="toast-container" aria-live="polite">
+  <div *ngFor="let toast of (toastService.toasts | async)" class="toast-card" [ngClass]="'toast-' + toast.type">
+    <div class="toast-icon">
+      <svg *ngIf="toast.type === 'success'" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+          clip-rule="evenodd" />
+      </svg>
+      <svg *ngIf="toast.type === 'error'" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd" />
+      </svg>
+      <svg *ngIf="toast.type === 'info'" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+          clip-rule="evenodd" />
+      </svg>
+      <svg *ngIf="toast.type === 'warning'" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+          clip-rule="evenodd" />
+      </svg>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title">{{ toast.title }}</div>
+      <div class="toast-message">{{ toast.message }}</div>
+    </div>
+    <button class="toast-close" (click)="toastService.remove(toast.id)">&times;</button>
+  </div>
+</div>
+
+<!-- Mobile Sidebar Backdrop -->
+<div *ngIf="mobileSidebarOpen" class="sidebar-backdrop" (click)="closeMobileSidebar()"></div>
+
+<div class="app-wrapper">
+  <!-- ========================================================= -->
+  <!-- 1. APPLICATION HEADER                                     -->
+  <!-- ========================================================= -->
+  <header class="app-header">
+    <div class="header-left">
+      <!-- Mobile Hamburger Toggle -->
+      <button class="btn-hamburger" (click)="toggleMobileSidebar()" aria-label="Toggle navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Desktop Sidebar Toggle Collapse -->
+      <button class="btn-sidebar-collapse" (click)="toggleSidebar()" title="Toggle sidebar view">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="9" y1="3" x2="9" y2="21"></line>
+        </svg>
+      </button>
+
+      <!-- Brand Logo -->
+      <div class="brand-logo" (click)="setNav('all')">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            <line x1="9" y1="7" x2="15" y2="7" />
+            <line x1="9" y1="11" x2="13" y2="11" />
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <span class="brand-title">Pulse<span class="brand-accent">Post</span></span>
+          <span class="brand-sub">DummyJSON Explorer</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header Center Quick Search -->
+    <div class="header-center">
+      <div class="header-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" [ngModel]="searchQuery" (ngModelChange)="onSearchInput($event)"
+          placeholder="Search DummyJSON posts (/posts/search?q=)..." />
+        <button *ngIf="searchQuery" class="btn-clear-search" (click)="clearSearch()">&times;</button>
+      </div>
+    </div>
+
+    <!-- Header Right Actions & Profile -->
+    <div class="header-right">
+      <div class="header-badge-stat">
+        <span class="status-indicator-online"></span>
+        <span>API Live ({{ total }} Posts)</span>
+      </div>
+
+      <button class="btn-header-publish" (click)="onNewPostClicked()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>New Post</span>
+      </button>
+
+      <div class="user-profile-badge" title="Demo Explorer User">
+        <div class="user-avatar-sm">AG</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- 2. BODY CONTAINER (SIDEBAR + MAIN CONTENT)                -->
+  <!-- ========================================================= -->
+  <div class="app-body-layout" [class.sidebar-is-collapsed]="sidebarCollapsed">
+    <!-- ===================================================== -->
+    <!-- 2.1 SIDEBAR NAVIGATION                                -->
+    <!-- ===================================================== -->
+    <aside class="app-sidebar" [class.collapsed]="sidebarCollapsed" [class.mobile-open]="mobileSidebarOpen">
+      <!-- Nav Menu -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Navigation</div>
+        <nav class="sidebar-nav">
+          <button class="nav-link" [class.active]="activeNav === 'all' && !selectedTag && selectedUser === null"
+            (click)="setNav('all')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span class="nav-text">All Posts Feed</span>
+            <span class="nav-badge">{{ total }}</span>
+          </button>
+
+          <button class="nav-link" [class.active]="activeNav === 'trending'" (click)="setNav('trending')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span class="nav-text">Trending / Popular</span>
+            <span class="nav-badge hot">HOT</span>
+          </button>
+
+          <button class="nav-link" [class.active]="activeNav === 'saved'" (click)="setNav('saved')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="nav-text">Saved Bookmarks</span>
+            <span class="nav-badge" *ngIf="savedPostIds.size > 0">{{ savedPostIds.size }}</span>
+          </button>
+
+        </nav>
+      </div>
+
+      <!-- Topics / Tags Sidebar Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">
+          <span>Explore Topics</span>
+          <span class="heading-count" *ngIf="tags.length > 0">({{ tags.length }})</span>
+        </div>
+        <div class="sidebar-tags-scroll">
+          <button *ngFor="let t of tags" class="sidebar-tag-item" [class.active]="selectedTag === t"
+            (click)="selectTag(t)">
+            <span class="tag-hash">#</span>
+            <span class="tag-name">{{ t }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter by Author / Users Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Authors (/posts/user/X)</div>
+        <div class="sidebar-authors-list">
+          <button *ngFor="let uid of [1, 2, 3, 4, 5, 8, 12, 20]" class="sidebar-author-btn"
+            [class.active]="selectedUser === uid" (click)="selectUser(selectedUser === uid ? null : uid)">
+            <div class="sidebar-author-avatar" [style.background]="getUserAvatarGradient(uid)">
+              U{{ uid }}
+            </div>
+            <span class="sidebar-author-name">User #{{ uid }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick System Info in Sidebar Footer -->
+      <div class="sidebar-bottom-info">
+        <div class="api-info-card">
+          <div class="api-info-title">System Status</div>
+          <div class="api-status-tag">Live &bull; Connected</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===================================================== -->
+    <!-- 2.2 MAIN CONTENT AREA                                 -->
+    <!-- ===================================================== -->
+    <main class="app-main-content">
+      <!-- Main Content Sub-Header Hero -->
+      <div class="content-banner">
+        <div class="banner-text">
+          <div class="banner-pill">
+            <span class="dot-online"></span>
+            <span>Angular 20 &bull; DummyJSON REST Hub</span>
+          </div>
+          <h1 class="banner-title">
+            <span *ngIf="activeNav === 'all' && !selectedTag && selectedUser === null">Explore Stories & Ideas</span>
+            <span *ngIf="activeNav === 'trending'">🔥 Trending & Most Viewed Posts</span>
+            <span *ngIf="selectedTag">🏷️ Posts tagged with #{{ selectedTag }}</span>
+            <span *ngIf="selectedUser !== null">👤 Posts by Author User #{{ selectedUser }}</span>
+            <span *ngIf="activeNav === 'saved'">💾 Saved Bookmarks</span>
+          </h1>
+          <p class="banner-desc">
+            Full-text search, multi-field sorting, dynamic categorization, instant author tipping, comments drawer, and
+            full CRUD operations.
+          </p>
+        </div>
+      </div>
+
+      <!-- Control / Action Strip -->
+      <div class="main-filter-bar">
+        <!-- Sort Control -->
+        <div class="filter-group">
+          <label class="filter-label">Sort By:</label>
+          <select [(ngModel)]="sortBy" (change)="onSortChange()" class="filter-select">
+            <option value="id">Default (ID)</option>
+            <option value="title">Title (A-Z)</option>
+            <option value="views">Total Views</option>
+          </select>
+        </div>
+
+        <!-- Order Toggle -->
+        <button class="btn-order-pill" (click)="toggleOrder()" [title]="order === 'asc' ? 'Ascending' : 'Descending'">
+          <svg *ngIf="order === 'asc'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 4h13M3 8h9M3 12h5m0 4l4 4 4-4m-4 4V10" />
+          </svg>
+          <svg *ngIf="order === 'desc'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 4h13M3 8h9M3 12h5m0-4l4-4 4 4m-4-4v14" />
+          </svg>
+          <span>{{ order.toUpperCase() }}</span>
+        </button>
+
+        <!-- Per Page Limit -->
+        <div class="filter-group">
+          <label class="filter-label">Show:</label>
+          <select [ngModel]="limit" (ngModelChange)="setLimit(+$event)" class="filter-select">
+            <option [value]="6">6 / page</option>
+            <option [value]="9">9 / page</option>
+            <option [value]="12">12 / page</option>
+            <option [value]="18">18 / page</option>
+          </select>
+        </div>
+
+        <!-- View Mode Switcher -->
+        <div class="view-mode-pill">
+          <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'" title="Grid Layout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+          <button class="view-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'" title="List Layout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Active Filter Badge & Clear -->
+        <button *ngIf="selectedTag || selectedUser !== null || searchQuery" class="btn-clear-all"
+          (click)="resetAllFilters()">
+          Clear Active Filters &times;
+        </button>
+      </div>
+
+      <!-- Skeletons Loader -->
+      <div *ngIf="loading" class="posts-grid" [ngClass]="'layout-' + viewMode">
+        <div *ngFor="let item of [1,2,3,4,5,6]" class="skeleton-card">
+          <div class="skeleton-header">
+            <div class="skeleton-avatar shimmer"></div>
+            <div class="skeleton-meta">
+              <div class="skeleton-line shimmer" style="width: 40%"></div>
+              <div class="skeleton-line shimmer" style="width: 25%"></div>
+            </div>
+          </div>
+          <div class="skeleton-line shimmer" style="width: 85%; height: 22px; margin: 16px 0;"></div>
+          <div class="skeleton-line shimmer" style="width: 100%; height: 14px; margin-bottom: 8px;"></div>
+          <div class="skeleton-line shimmer" style="width: 90%; height: 14px; margin-bottom: 8px;"></div>
+          <div class="skeleton-line shimmer" style="width: 65%; height: 14px;"></div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && posts.length === 0" class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <h3>No Posts Found</h3>
+        <p>No results match your active query or filters. Try adjusting your parameters or clear all filters.</p>
+        <button class="btn-primary" (click)="resetAllFilters()">Reset Filters</button>
+      </div>
+
+      <!-- Posts Feed Grid / List -->
+      <div *ngIf="!loading && posts.length > 0" class="posts-grid" [ngClass]="'layout-' + viewMode">
+        <article *ngFor="let post of posts" class="post-card" (click)="openPost(post)">
+          <!-- Card Header -->
+          <div class="post-card-header">
+            <div class="author-info" (click)="selectUser(post.userId); $event.stopPropagation()">
+              <div class="author-avatar" [style.background]="getUserAvatarGradient(post.userId)">
+                <span>U{{ post.userId }}</span>
+              </div>
+              <div class="author-meta">
+                <span class="author-name">Author #{{ post.userId }}</span>
+                <span class="post-read-time">{{ getEstimatedReadTime(post.body) }}</span>
+              </div>
+            </div>
+
+            <div class="card-top-actions">
+              <!-- Bookmark Button -->
+              <button class="btn-icon-top" [class.active]="isBookmarked(post.id)" (click)="toggleBookmark(post, $event)"
+                [title]="isBookmarked(post.id) ? 'Remove Bookmark' : 'Bookmark Post'">
+                <svg viewBox="0 0 24 24" [attr.fill]="isBookmarked(post.id) ? '#f59e0b' : 'none'"
+                  [attr.stroke]="isBookmarked(post.id) ? '#f59e0b' : 'currentColor'" stroke-width="2">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
+
+              <!-- Copy Link -->
+              <button class="btn-icon-top" (click)="copyPostLink(post, $event)" title="Copy API Link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card Content -->
+          <div class="post-card-content">
+            <h2 class="post-title">{{ post.title }}</h2>
+            <p class="post-body">{{ post.body }}</p>
+          </div>
+
+          <!-- Tags -->
+          <div class="post-tags-list">
+            <span *ngFor="let t of post.tags" class="post-tag-chip" (click)="selectTag(t); $event.stopPropagation()">
+              #{{ t }}
+            </span>
+          </div>
+
+          <!-- Card Footer -->
+          <div class="post-card-footer">
+            <div class="reaction-buttons">
+              <!-- Like Button -->
+              <button class="reaction-btn" [class.active]="userReactions[post.id || 0] === 'like'"
+                (click)="toggleReaction(post, 'like', $event)" title="Like">
+                <svg viewBox="0 0 24 24" [attr.fill]="userReactions[post.id || 0] === 'like' ? '#f43f5e' : 'none'"
+                  [attr.stroke]="userReactions[post.id || 0] === 'like' ? '#f43f5e' : 'currentColor'" stroke-width="2">
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                  </path>
+                </svg>
+                <span>{{ getLikesCount(post) }}</span>
+              </button>
+
+              <!-- Dislike Button -->
+              <button class="reaction-btn" [class.active]="userReactions[post.id || 0] === 'dislike'"
+                (click)="toggleReaction(post, 'dislike', $event)" title="Dislike">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path
+                    d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
+                </svg>
+                <span>{{ getDislikesCount(post) }}</span>
+              </button>
+
+              <!-- Views Counter -->
+              <div class="views-indicator" *ngIf="post.views !== undefined" title="Views">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>{{ post.views }}</span>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="post-crud-actions">
+              <button class="btn-card-action edit-btn" (click)="openEditModal(post, $event)" title="Edit this Post">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="btn-card-action delete-btn" (click)="confirmDelete(post, $event)" title="Delete this Post">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+              <button class="btn-read-more" (click)="openPost(post); $event.stopPropagation()">
+                <span>Discuss</span>
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- Pagination Footer Controls -->
+      <div class="pagination-section" *ngIf="!loading && totalPages > 1">
+        <div class="pagination-info">
+          Showing <strong>{{ (currentPage - 1) * limit + 1 }}</strong> &ndash; <strong>{{ (currentPage * limit) > total
+            ? total : (currentPage * limit) }}</strong> of <strong>{{ total }}</strong>
+        </div>
+
+        <div class="pagination-pages">
+          <button class="page-btn nav" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+            &larr; Prev
+          </button>
+          <ng-container *ngFor="let p of pages">
+            <span *ngIf="p < 0" class="page-dots">&hellip;</span>
+            <button *ngIf="p > 0" class="page-btn num" [class.active]="p === currentPage" (click)="goToPage(p)">
+              {{ p }}
+            </button>
+          </ng-container>
+          <button class="page-btn nav" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+            Next &rarr;
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 3. APPLICATION FOOTER                                     -->
+  <!-- ========================================================= -->
+  <footer class="app-footer">
+    <div class="footer-grid">
+      <!-- Col 1: Brand & Bio -->
+      <div class="footer-col">
+        <div class="brand-logo footer-brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              <line x1="9" y1="7" x2="15" y2="7" />
+              <line x1="9" y1="11" x2="13" y2="11" />
+            </svg>
+          </div>
+          <span class="brand-title">Pulse<span class="brand-accent">Post</span></span>
+        </div>
+        <p class="footer-text">
+          A high-performance modern web application built with Angular 20 and powered by the DummyJSON REST API
+          ecosystem.
+        </p>
+        <div class="footer-tags-pill">
+          <span class="pulse-green"></span>
+          <span>DummyJSON API v2 Online</span>
+        </div>
+      </div>
+
+      <!-- Categories & Quick Filters -->
+      <div class="footer-col">
+        <h4 class="footer-title">Popular Topics</h4>
+        <div class="footer-tags-cloud">
+          <button *ngFor="let t of tags.slice(0, 8)" class="footer-tag-chip" (click)="selectTag(t)">
+            #{{ t }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Col 4: Quick Actions -->
+      <div class="footer-col">
+        <h4 class="footer-title">Quick Actions</h4>
+        <div class="footer-action-buttons">
+          <button class="btn-footer-action" (click)="onNewPostClicked()">+ Create New Post</button>
+          <button class="btn-footer-action" (click)="resetAllFilters()">🔄 Reset Filters</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copyright & Disclaimer Strip -->
+    <div class="footer-bottom-strip">
+      <div class="footer-bottom-container">
+        <span>&copy; 2026 PulsePost Explorer. Designed & Engineered with Angular.</span>
+        <div class="footer-meta-links">
+          <span>Powered by <a href="https://dummyjson.com" target="_blank" rel="noopener">DummyJSON</a></span>
+          <span>&bull;</span>
+          <span>Reactive RxJS</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: Post Detail & Comments Discussion Drawer                -->
+<!-- ============================================================== -->
+<div *ngIf="selectedPost" class="modal-backdrop" (click)="closePostDetail()">
+  <div class="modal-card detail-drawer" (click)="$event.stopPropagation()">
+    <div class="drawer-header">
+      <div class="drawer-author-tag">
+        <div class="author-avatar" [style.background]="getUserAvatarGradient(selectedPost.userId)">
+          <span>U{{ selectedPost.userId }}</span>
+        </div>
+        <div>
+          <h4>Author #{{ selectedPost.userId }}</h4>
+          <span class="text-subtle">Post ID #{{ selectedPost.id }} &bull; {{ getEstimatedReadTime(selectedPost.body)
+            }}</span>
+        </div>
+      </div>
+      <div class="drawer-header-actions">
+        <button class="btn-icon-action" (click)="toggleBookmark(selectedPost)"
+          [title]="isBookmarked(selectedPost.id) ? 'Remove Bookmark' : 'Bookmark'">
+          <svg viewBox="0 0 24 24" [attr.fill]="isBookmarked(selectedPost.id) ? '#f59e0b' : 'none'"
+            [attr.stroke]="isBookmarked(selectedPost.id) ? '#f59e0b' : 'currentColor'" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+        <button class="btn-icon-action" (click)="openEditModal(selectedPost); closePostDetail()" title="Edit Post">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </button>
+        <button class="btn-close-modal" (click)="closePostDetail()">&times;</button>
+      </div>
+    </div>
+
+    <div class="drawer-scrollable">
+      <h1 class="drawer-title">{{ selectedPost.title }}</h1>
+      <p class="drawer-body-text">{{ selectedPost.body }}</p>
+
+      <div class="drawer-tags-strip">
+        <span *ngFor="let t of selectedPost.tags" class="post-tag-chip">#{{ t }}</span>
+      </div>
+
+      <div class="drawer-stats-bar">
+        <button class="reaction-btn" [class.active]="userReactions[selectedPost.id || 0] === 'like'"
+          (click)="toggleReaction(selectedPost, 'like')">
+          <svg viewBox="0 0 24 24" [attr.fill]="userReactions[selectedPost.id || 0] === 'like' ? '#f43f5e' : 'none'"
+            [attr.stroke]="userReactions[selectedPost.id || 0] === 'like' ? '#f43f5e' : 'currentColor'"
+            stroke-width="2">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+            </path>
+          </svg>
+          <span>{{ getLikesCount(selectedPost) }} Likes</span>
+        </button>
+        <button class="reaction-btn" [class.active]="userReactions[selectedPost.id || 0] === 'dislike'"
+          (click)="toggleReaction(selectedPost, 'dislike')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
+          </svg>
+          <span>{{ getDislikesCount(selectedPost) }} Dislikes</span>
+        </button>
+        <div class="views-indicator" *ngIf="selectedPost.views !== undefined">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>{{ selectedPost.views }} Views</span>
+        </div>
+      </div>
+
+      <hr class="drawer-divider" />
+
+      <!-- Comments -->
+      <div class="comments-section">
+        <div class="comments-header">
+          <h3>Discussion <span class="comments-count">({{ comments.length }})</span></h3>
+        </div>
+
+        <div class="add-comment-box">
+          <textarea [(ngModel)]="newCommentText" placeholder="Write a comment..." rows="3"
+            class="comment-textarea"></textarea>
+          <div class="add-comment-footer">
+            <span class="text-subtle">Formatting supported</span>
+            <button class="btn-primary btn-sm" [disabled]="!newCommentText.trim()" (click)="addComment()">Post
+              Comment</button>
+          </div>
+        </div>
+
+        <div *ngIf="commentsLoading" class="comments-loading">
+          <div class="spinner"></div>
+          <span>Loading comments from API...</span>
+        </div>
+
+        <div *ngIf="!commentsLoading && comments.length === 0" class="comments-empty">
+          <p>No comments yet. Start the conversation!</p>
+        </div>
+
+        <div *ngIf="!commentsLoading && comments.length > 0" class="comments-thread">
+          <div *ngFor="let c of comments" class="comment-item">
+            <div class="comment-avatar">
+              {{ (c.user.fullName || c.user.username || 'U').charAt(0).toUpperCase() }}
+            </div>
+            <div class="comment-body-wrapper">
+              <div class="comment-author-bar">
+                <span class="comment-username">{{ c.user.fullName || c.user.username }}</span>
+                <span class="comment-date">{{ c.createdAt || 'User #' + c.user.id }}</span>
+              </div>
+              <p class="comment-text">{{ c.body }}</p>
+              <div class="comment-actions">
+                <button class="btn-like-comment" (click)="c.likes = c.likes + 1">
+                  ❤️ <span>{{ c.likes }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: Dynamic Payment System & Creator Pass Checkout         -->
+<!-- ============================================================== -->
+<div *ngIf="showPaymentModal" class="modal-backdrop" (click)="closePaymentModal()">
+  <div class="modal-card payment-dialog animate-scale-in" (click)="$event.stopPropagation()">
+
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <div class="modal-badge-icon payment-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+        </div>
+        <div>
+          <h2 class="modal-title">Post Publishing Pass & Checkout</h2>
+          <p class="modal-subtitle">Pay securely before publishing your new post to the community feed.</p>
+        </div>
+      </div>
+      <div class="header-modal-actions">
+        <!-- Currency Switcher -->
+        <div class="currency-toggle-pill">
+          <button [class.active]="currency === 'INR'" (click)="setCurrency('INR')">₹ INR</button>
+          <button [class.active]="currency === 'USD'" (click)="setCurrency('USD')">$ USD</button>
+        </div>
+        <span class="security-lock-tag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          256-Bit SSL
+        </span>
+        <button class="btn-close-modal" (click)="closePaymentModal()">&times;</button>
+      </div>
+    </div>
+
+    <!-- STEP 1: Select Plan / Custom Quantity & Payment Method -->
+    <div *ngIf="paymentStep === 'select'" class="payment-body">
+
+      <!-- Top Mode Selector: Preset Plans vs Custom Quantity -->
+      <div class="mode-switch-container">
+        <button class="mode-switch-btn" [class.active]="pricingMode === 'plans'" (click)="setPricingMode('plans')">
+          <span>👑 Recommended Plans</span>
+        </button>
+        <button class="mode-switch-btn" [class.active]="pricingMode === 'custom'" (click)="setPricingMode('custom')">
+          <span>⚡ Custom Post Quantity</span>
+        </button>
+      </div>
+
+      <!-- Option A: Preset Plans Grid -->
+      <div *ngIf="pricingMode === 'plans'" class="plans-grid">
+        <!-- Single Post Pass -->
+        <div class="plan-card" [class.selected]="selectedPlan === 'single'" (click)="selectPlan('single')">
+          <div class="plan-header">
+            <span class="plan-type">Single Post</span>
+            <span class="plan-price">{{ formatAmount(49) }}</span>
+          </div>
+          <div class="plan-desc">1 Post Publishing Credit</div>
+          <ul class="plan-features">
+            <li>✓ Instant live API broadcast</li>
+            <li>✓ Full editing access</li>
+          </ul>
+          <div class="plan-radio-indicator">
+            <span class="radio-dot" *ngIf="selectedPlan === 'single'"></span>
+          </div>
+        </div>
+
+        <!-- Creator Pro Pass (Recommended) -->
+        <div class="plan-card popular" [class.selected]="selectedPlan === 'creator'" (click)="selectPlan('creator')">
+          <div class="plan-badge-popular">BEST VALUE 🔥</div>
+          <div class="plan-header">
+            <span class="plan-type">Creator Pro</span>
+            <span class="plan-price">{{ formatAmount(149) }}</span>
+          </div>
+          <div class="plan-desc">5 Post Publishing Credits</div>
+          <ul class="plan-features">
+            <li>✓ 5 New Posts included ({{ formatAmount(30) }}/post)</li>
+            <li>✓ ✨ Verified Creator Tag</li>
+            <li>✓ Priority feed distribution</li>
+          </ul>
+          <div class="plan-radio-indicator">
+            <span class="radio-dot" *ngIf="selectedPlan === 'creator'"></span>
+          </div>
+        </div>
+
+        <!-- Unlimited VIP Pass -->
+        <div class="plan-card vip" [class.selected]="selectedPlan === 'unlimited'" (click)="selectPlan('unlimited')">
+          <div class="plan-badge-vip">👑 LIFETIME VIP</div>
+          <div class="plan-header">
+            <span class="plan-type">VIP Author</span>
+            <span class="plan-price">{{ formatAmount(399) }}</span>
+          </div>
+          <div class="plan-desc">Unlimited Posts Forever</div>
+          <ul class="plan-features">
+            <li>✓ Unlimited post creations</li>
+            <li>✓ Gold VIP Author badge</li>
+            <li>✓ 24/7 Priority API access</li>
+          </ul>
+          <div class="plan-radio-indicator">
+            <span class="radio-dot" *ngIf="selectedPlan === 'unlimited'"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option B: Custom Quantity Dynamic Counter -->
+      <div *ngIf="pricingMode === 'custom'" class="custom-quantity-box">
+        <div class="custom-qty-header">
+          <div>
+            <h4 class="custom-qty-title">Select Number of Posts</h4>
+            <p class="custom-qty-subtitle">Scale your publishing power with dynamic volume discounts.</p>
+          </div>
+          <div class="volume-discount-tag" *ngIf="customCredits >= 10">
+            🔥 49% Bulk Savings Applied!
+          </div>
+          <div class="volume-discount-tag" *ngIf="customCredits >= 5 && customCredits < 10">
+            ⚡ 28% Volume Discount!
+          </div>
+        </div>
+
+        <div class="qty-stepper-control">
+          <button class="btn-qty-step" (click)="changeCustomCredits(-1)"
+            [disabled]="customCredits <= 1">&minus;</button>
+          <div class="qty-display-badge">
+            <span class="qty-number">{{ customCredits }}</span>
+            <span class="qty-unit">Post Credits</span>
+          </div>
+          <button class="btn-qty-step" (click)="changeCustomCredits(1)" [disabled]="customCredits >= 50">&plus;</button>
+        </div>
+
+        <!-- Dynamic Quick Preset Buttons -->
+        <div class="qty-preset-chips">
+          <button class="qty-chip" [class.active]="customCredits === 1" (click)="customCredits = 1">1 Post ({{
+            formatAmount(49) }})</button>
+          <button class="qty-chip" [class.active]="customCredits === 3" (click)="customCredits = 3">3 Posts ({{
+            formatAmount(147) }})</button>
+          <button class="qty-chip" [class.active]="customCredits === 5" (click)="customCredits = 5">5 Posts ({{
+            formatAmount(175) }})</button>
+          <button class="qty-chip" [class.active]="customCredits === 10" (click)="customCredits = 10">10 Posts ({{
+            formatAmount(250) }})</button>
+          <button class="qty-chip" [class.active]="customCredits === 25" (click)="customCredits = 25">25 Posts ({{
+            formatAmount(625) }})</button>
+        </div>
+      </div>
+
+      <!-- Customer & Billing Information Section -->
+      <div class="billing-info-card">
+        <div class="billing-card-header">
+          <div class="billing-header-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Customer & Billing Information</span>
+          </div>
+          <span class="billing-verified-tag">🛡️ Verified Payer</span>
+        </div>
+
+        <div class="billing-fields-grid">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label class="form-label" for="bill-name">
+              <span>Full Name</span>
+              <span class="required-star">*</span>
+            </label>
+            <div class="input-with-icon">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <input id="bill-name" type="text" [(ngModel)]="billingData.name" (ngModelChange)="onBillingNameInput()"
+                class="form-control" />
+            </div>
+          </div>
+
+          <!-- Email Address -->
+          <div class="form-group">
+            <label class="form-label" for="bill-email">
+              <span>Email Address</span>
+              <span class="required-star">*</span>
+            </label>
+            <div class="input-with-icon">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <input id="bill-email" type="email" [(ngModel)]="billingData.email"
+                class="form-control" />
+            </div>
+          </div>
+
+          <!-- Mobile Number -->
+          <div class="form-group">
+            <label class="form-label" for="bill-mobile">
+              <span>Mobile Number</span>
+              <span class="required-star">*</span>
+            </label>
+            <div class="input-with-icon mobile-input-group">
+              <span class="country-prefix">+91</span>
+              <input id="bill-mobile" type="tel" maxlength="10" [(ngModel)]="billingData.mobile"
+                class="form-control mobile-control" />
+            </div>
+          </div>
+
+          <!-- City -->
+          <div class="form-group">
+            <label class="form-label" for="bill-city">
+              <span>City</span>
+              <span class="required-star">*</span>
+            </label>
+            <div class="input-with-icon">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                <line x1="9" y1="22" x2="9" y2="2"></line>
+                <line x1="8" y1="6" x2="8" y2="6"></line>
+                <line x1="16" y1="6" x2="16" y2="6"></line>
+                <line x1="16" y1="10" x2="16" y2="10"></line>
+                <line x1="16" y1="14" x2="16" y2="14"></line>
+                <line x1="16" y1="18" x2="16" y2="18"></line>
+              </svg>
+              <input id="bill-city" type="text" [(ngModel)]="billingData.city"
+                class="form-control" />
+            </div>
+          </div>
+
+          <!-- Street Address -->
+          <div class="form-group span-full">
+            <label class="form-label" for="bill-address">
+              <span>Street Address</span>
+              <span class="required-star">*</span>
+            </label>
+            <div class="input-with-icon">
+              <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <input id="bill-address" type="text" [(ngModel)]="billingData.address"
+                class="form-control" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method Tabs -->
+      <div class="payment-section-title payment-section-margin">
+        <span>Payment Method</span>
+      </div>
+      <div class="payment-tabs-nav">
+        <button class="pay-tab-btn" [class.active]="paymentMethod === 'upi'" (click)="selectPaymentMethod('upi')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="4"></rect>
+            <path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7zM14 14h3v3h-3z"></path>
+          </svg>
+          <span>UPI / QR</span>
+        </button>
+        <button class="pay-tab-btn" [class.active]="paymentMethod === 'card'" (click)="selectPaymentMethod('card')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+          <span>Credit / Debit Card</span>
+        </button>
+        <button class="pay-tab-btn" [class.active]="paymentMethod === 'netbanking'"
+          (click)="selectPaymentMethod('netbanking')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M14 10v11M12 2L2 7h20L12 2z"></path>
+          </svg>
+          <span>Net Banking</span>
+        </button>
+        <button class="pay-tab-btn" [class.active]="paymentMethod === 'wallet'" (click)="selectPaymentMethod('wallet')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+            <path d="M16 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path>
+          </svg>
+          <span>Wallets</span>
+        </button>
+      </div>
+
+      <!-- Payment Method Content: UPI / QR -->
+      <div *ngIf="paymentMethod === 'upi'" class="pay-method-pane">
+        <div class="upi-container">
+          <div class="qr-code-box">
+            <div class="qr-frame">
+              <svg viewBox="0 0 160 160" class="qr-svg">
+                <rect width="160" height="160" fill="#ffffff" rx="8" />
+                <rect x="12" y="12" width="40" height="40" fill="#0b0f19" rx="4" />
+                <rect x="20" y="20" width="24" height="24" fill="#ffffff" rx="2" />
+                <rect x="26" y="26" width="12" height="12" fill="#6366f1" />
+
+                <rect x="108" y="12" width="40" height="40" fill="#0b0f19" rx="4" />
+                <rect x="116" y="20" width="24" height="24" fill="#ffffff" rx="2" />
+                <rect x="122" y="26" width="12" height="12" fill="#6366f1" />
+
+                <rect x="12" y="108" width="40" height="40" fill="#0b0f19" rx="4" />
+                <rect x="20" y="116" width="24" height="24" fill="#ffffff" rx="2" />
+                <rect x="26" y="122" width="12" height="12" fill="#6366f1" />
+
+                <rect x="60" y="15" width="8" height="8" fill="#111827" />
+                <rect x="74" y="15" width="8" height="8" fill="#111827" />
+                <rect x="88" y="15" width="8" height="8" fill="#6366f1" />
+                <rect x="60" y="30" width="8" height="8" fill="#6366f1" />
+                <rect x="80" y="30" width="12" height="8" fill="#111827" />
+                <rect x="60" y="45" width="20" height="8" fill="#111827" />
+                <rect x="86" y="45" width="8" height="8" fill="#6366f1" />
+
+                <rect x="15" y="60" width="14" height="8" fill="#111827" />
+                <rect x="35" y="60" width="8" height="8" fill="#6366f1" />
+                <rect x="50" y="60" width="24" height="8" fill="#111827" />
+                <rect x="80" y="60" width="14" height="8" fill="#111827" />
+                <rect x="100" y="60" width="20" height="8" fill="#6366f1" />
+                <rect x="126" y="60" width="18" height="8" fill="#111827" />
+
+                <rect x="15" y="75" width="8" height="14" fill="#6366f1" />
+                <rect x="30" y="75" width="18" height="8" fill="#111827" />
+                <rect x="55" y="75" width="15" height="15" fill="#6366f1" rx="2" />
+                <rect x="76" y="75" width="8" height="8" fill="#111827" />
+                <rect x="90" y="75" width="25" height="8" fill="#111827" />
+                <rect x="122" y="75" width="22" height="14" fill="#6366f1" />
+
+                <rect x="15" y="94" width="22" height="8" fill="#111827" />
+                <rect x="42" y="94" width="8" height="8" fill="#6366f1" />
+                <rect x="56" y="94" width="20" height="8" fill="#111827" />
+                <rect x="82" y="94" width="14" height="8" fill="#6366f1" />
+                <rect x="102" y="94" width="24" height="8" fill="#111827" />
+                <rect x="132" y="94" width="12" height="8" fill="#6366f1" />
+
+                <rect x="60" y="108" width="10" height="8" fill="#111827" />
+                <rect x="76" y="108" width="18" height="8" fill="#6366f1" />
+                <rect x="100" y="108" width="12" height="8" fill="#111827" />
+                <rect x="118" y="108" width="26" height="8" fill="#111827" />
+
+                <rect x="60" y="122" width="24" height="8" fill="#6366f1" />
+                <rect x="90" y="122" width="14" height="8" fill="#111827" />
+                <rect x="110" y="122" width="18" height="8" fill="#6366f1" />
+                <rect x="134" y="122" width="10" height="8" fill="#111827" />
+
+                <rect x="60" y="136" width="12" height="12" fill="#111827" />
+                <rect x="78" y="136" width="26" height="12" fill="#6366f1" />
+                <rect x="110" y="136" width="34" height="12" fill="#111827" />
+
+                <rect x="66" y="66" width="28" height="28" fill="#6366f1" rx="6" />
+                <text x="80" y="84" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">₹</text>
+              </svg>
+              <div class="qr-scanner-line"></div>
+            </div>
+            <!-- Live QR Timer -->
+            <div class="qr-timer-badge">
+              <span class="timer-dot"></span>
+              <span>Expires in {{ getUpiTimerFormatted() }}</span>
+              <button class="btn-refresh-qr" (click)="refreshQrSession()" title="Refresh QR Session">🔄</button>
+            </div>
+          </div>
+
+          <div class="upi-input-group">
+            <div class="upi-vpa-lookup-card">
+              <span class="lookup-status">{{ upiAccountLookup }}</span>
+              <button class="btn-copy-vpa" (click)="copyToClipboard(upiData.vpa, 'UPI ID')">📋 Copy</button>
+            </div>
+
+            <label class="form-label" for="upi-vpa">Pay via your UPI App Virtual Address</label>
+            <div class="upi-input-wrap">
+              <input id="upi-vpa" type="text" [(ngModel)]="upiData.vpa"
+                class="form-control" />
+              <span class="upi-verified-badge">✓ Verified</span>
+            </div>
+
+            <!-- Fast UPI App Badges -->
+            <div class="upi-apps-row">
+              <button class="upi-app-pill" (click)="upiData.vpa = 'creator@okaxis'"><span class="app-dot gpay"></span>
+                Google Pay</button>
+              <button class="upi-app-pill" (click)="upiData.vpa = 'creator@ybl'"><span class="app-dot phonepe"></span>
+                PhonePe</button>
+              <button class="upi-app-pill" (click)="upiData.vpa = 'creator@paytm'"><span class="app-dot paytm"></span>
+                Paytm</button>
+              <button class="upi-app-pill" (click)="upiData.vpa = 'creator@upi'"><span class="app-dot bhim"></span> BHIM
+                UPI</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method Content: Credit / Debit Card -->
+      <div *ngIf="paymentMethod === 'card'" class="pay-method-pane">
+
+        <!-- Card Theme Selector -->
+        <div class="card-theme-bar">
+          <span class="theme-label">Card Theme:</span>
+          <div class="theme-dots">
+            <button class="theme-dot cyber" [class.active]="cardTheme === 'cyber'" (click)="setCardTheme('cyber')"
+              title="Cyber Violet"></button>
+            <button class="theme-dot gold" [class.active]="cardTheme === 'gold'" (click)="setCardTheme('gold')"
+              title="Royal Gold"></button>
+            <button class="theme-dot emerald" [class.active]="cardTheme === 'emerald'" (click)="setCardTheme('emerald')"
+              title="Emerald Green"></button>
+            <button class="theme-dot rose" [class.active]="cardTheme === 'rose'" (click)="setCardTheme('rose')"
+              title="Rose Titanium"></button>
+          </div>
+        </div>
+
+        <!-- Live Interactive Virtual Card Preview -->
+        <div class="card-virtual-preview" [ngClass]="'theme-' + cardTheme">
+          <div class="card-chip-row">
+            <div class="card-chip"></div>
+            <div class="card-contactless">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+              </svg>
+            </div>
+            <div class="card-brand-badge" [ngClass]="cardBrand">
+              {{ cardBrand.toUpperCase() }}
+            </div>
+          </div>
+          <div class="card-number-display">{{ cardData.number || '•••• •••• •••• ••••' }}</div>
+          <div class="card-bottom-row">
+            <div class="card-holder">
+              <span class="card-label">CARD HOLDER</span>
+              <span class="card-val">{{ (cardData.name || 'YOUR NAME').toUpperCase() }}</span>
+            </div>
+            <div class="card-expiry">
+              <span class="card-label">EXPIRES</span>
+              <span class="card-val">{{ cardData.expiry || 'MM/YY' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-fields-grid">
+          <div class="form-group span-full">
+            <label class="form-label" for="card-num">Card Number (Live Auto-format)</label>
+            <input id="card-num" type="text" [ngModel]="cardData.number" (input)="onCardNumberInput($event)"
+              class="form-control" />
+          </div>
+          <div class="form-group span-full">
+            <label class="form-label" for="card-name">Cardholder Name</label>
+            <input id="card-name" type="text" [(ngModel)]="cardData.name" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="card-exp">Expiry (MM/YY)</label>
+            <input id="card-exp" type="text" [ngModel]="cardData.expiry" (input)="onCardExpiryInput($event)"
+              class="form-control" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="card-cvv">CVV (3 or 4 Digits)</label>
+            <input id="card-cvv" type="password" maxlength="4" [(ngModel)]="cardData.cvv" class="form-control" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method Content: Net Banking -->
+      <div *ngIf="paymentMethod === 'netbanking'" class="pay-method-pane">
+        <div class="bank-search-wrap">
+          <input type="text" [(ngModel)]="bankSearchQuery"
+            class="form-control bank-search-input" />
+        </div>
+        <div class="banks-grid">
+          <div *ngFor="let b of getFilteredBanks()" class="bank-card" [class.active]="selectedBank === b.id"
+            (click)="selectedBank = b.id">
+            <div class="bank-avatar" [style.background]="b.color">{{ b.code }}</div>
+            <span class="bank-name">{{ b.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method Content: Wallets -->
+      <div *ngIf="paymentMethod === 'wallet'" class="pay-method-pane">
+        <div class="wallets-grid">
+          <div class="wallet-card" [class.active]="selectedWallet === 'gpay'" (click)="selectedWallet = 'gpay'">
+            <div class="wallet-icon">G</div>
+            <div class="wallet-info">
+              <span class="wallet-title">Google Pay</span>
+              <span class="wallet-sub">Instant 1-tap fast authorization</span>
+            </div>
+          </div>
+          <div class="wallet-card" [class.active]="selectedWallet === 'paytm'" (click)="selectedWallet = 'paytm'">
+            <div class="wallet-icon paytm">P</div>
+            <div class="wallet-info">
+              <span class="wallet-title">Paytm Wallet</span>
+              <span class="wallet-sub">Direct balance deduction</span>
+            </div>
+          </div>
+          <div class="wallet-card" [class.active]="selectedWallet === 'amazon'" (click)="selectedWallet = 'amazon'">
+            <div class="wallet-icon amazon">A</div>
+            <div class="wallet-info">
+              <span class="wallet-title">Amazon Pay</span>
+              <span class="wallet-sub">Fast 1-click token pay</span>
+            </div>
+          </div>
+          <div class="wallet-card" [class.active]="selectedWallet === 'apple'" (click)="selectedWallet = 'apple'">
+            <div class="wallet-icon apple"></div>
+            <div class="wallet-info">
+              <span class="wallet-title">Apple Pay</span>
+              <span class="wallet-sub">Touch ID / Face ID Biometrics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Coupon / Promo Code Engine -->
+      <div class="coupon-engine-card">
+        <div class="coupon-header">
+          <span class="coupon-title">🏷️ Promo Code / Discount Coupon</span>
+          <span class="coupon-sub">Apply coupon for instant savings</span>
+        </div>
+        <div class="coupon-input-row" *ngIf="!appliedCoupon">
+          <input type="text" [(ngModel)]="couponInput"
+            class="form-control coupon-input" />
+          <button class="btn-apply-coupon" (click)="applyCoupon()" [disabled]="!couponInput.trim()">Apply</button>
+        </div>
+
+        <!-- Dynamic Quick Coupons Suggestions -->
+        <div class="quick-coupon-chips" *ngIf="!appliedCoupon">
+          <button class="coupon-chip" (click)="couponInput = 'CREATOR50'; applyCoupon()">🔥 CREATOR50 (50% OFF)</button>
+          <button class="coupon-chip" (click)="couponInput = 'SAVE20'; applyCoupon()">⚡ SAVE20 (20% OFF)</button>
+          <button class="coupon-chip" (click)="couponInput = 'FREEPASS'; applyCoupon()">🎁 FREEPASS (100% FREE)</button>
+        </div>
+
+        <!-- Applied Coupon Banner -->
+        <div class="applied-coupon-banner" *ngIf="appliedCoupon">
+          <div class="applied-left">
+            <span class="applied-badge">✓ {{ appliedCoupon.code }} APPLIED</span>
+            <span class="applied-desc">{{ appliedCoupon.desc }}</span>
+          </div>
+          <button class="btn-remove-coupon" (click)="removeCoupon()">&times; Remove</button>
+        </div>
+
+        <div *ngIf="couponFeedback" [ngClass]="'coupon-feedback-' + couponFeedback.type">
+          {{ couponFeedback.text }}
+        </div>
+      </div>
+
+      <!-- Order Summary Strip -->
+      <div class="payment-order-summary">
+        <div class="order-breakdown">
+          <div class="order-row">
+            <span>{{ getPlanName() }}</span>
+            <span>{{ formatAmount(getBaseSubtotal()) }}</span>
+          </div>
+          <div class="order-row discount" *ngIf="getDiscountAmount() > 0">
+            <span>Coupon Discount ({{ appliedCoupon?.code }})</span>
+            <span class="discount-val">&minus;{{ formatAmount(getDiscountAmount()) }}</span>
+          </div>
+          <div class="order-row">
+            <span>GST & 256-Bit Network Fee (18%)</span>
+            <span>{{ formatAmount(getTaxAmount()) }}</span>
+          </div>
+          <div class="order-row total">
+            <span>Total Payable</span>
+            <span class="highlight-price">{{ formatAmount(getTotalPayable()) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="modal-footer payment-footer">
+        <button type="button" class="btn-secondary" (click)="closePaymentModal()">Cancel</button>
+        <div class="pay-action-buttons">
+          <button type="button" class="btn-demo-pay" (click)="processPayment(true)"
+            title="Fast test checkout with simulated approval">
+            ⚡ 1-Click Fast Demo Pay
+          </button>
+          <button type="button" class="btn-primary-pay" (click)="requestOtpVerification()">
+            <span>Pay {{ formatAmount(getTotalPayable()) }} & Continue</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1.5: Dynamic OTP Verification Step -->
+    <div *ngIf="paymentStep === 'otp'" class="payment-otp-view">
+      <div class="otp-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+
+      <h3 class="otp-title">Enter 6-Digit Banking OTP</h3>
+      <p class="otp-subtitle">A verification code was dispatched to registered mobile <strong>{{ otpPhoneNumber
+          }}</strong> for authorization of {{ formatAmount(getTotalPayable()) }}.</p>
+
+      <div class="otp-input-container">
+        <input type="text" maxlength="6" [(ngModel)]="otpInput"
+          class="form-control otp-code-input" />
+      </div>
+
+      <div class="otp-resend-row">
+        <span>Resend code in {{ otpTimerSeconds }}s</span>
+        <button class="btn-autofill-otp" (click)="autoFillTestOtp()">⚡ Auto-fill Test Code (849201)</button>
+      </div>
+
+      <div class="otp-actions-row">
+        <button class="btn-secondary" (click)="paymentStep = 'select'">Back</button>
+        <button class="btn-primary-pay" (click)="confirmOtpAndPay()" [disabled]="!otpInput || otpInput.length < 4">
+          Verify & Pay {{ formatAmount(getTotalPayable()) }}
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Processing Payment Animation -->
+    <div *ngIf="paymentStep === 'processing'" class="payment-processing-view">
+      <div class="processing-radar">
+        <div class="radar-pulse"></div>
+        <div class="radar-pulse-2"></div>
+        <div class="radar-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+      </div>
+
+      <h3 class="processing-title">Authorizing Payment</h3>
+      <p class="processing-subtitle">{{ processingStatusText }}</p>
+
+      <div class="processing-bar-wrap">
+        <div class="processing-bar-fill" [style.width.%]="processingProgress"></div>
+      </div>
+      <span class="processing-percentage">{{ processingProgress }}% Authorized</span>
+
+      <div class="security-badges-row">
+        <span>🔒 256-Bit SSL</span>
+        <span>&bull;</span>
+        <span>🛡️ PCI-DSS Certified</span>
+        <span>&bull;</span>
+        <span>⚡ Instant Post Credit Unlock</span>
+      </div>
+    </div>
+
+    <!-- STEP 3: Payment Success Receipt Screen -->
+    <div *ngIf="paymentStep === 'success'" class="payment-success-view">
+      <div class="success-check-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+
+      <h2 class="success-title">Payment Successful! 🎉</h2>
+      <p class="success-subtitle">Your Post Publishing Pass is activated. You can now compose and publish your new post!
+      </p>
+
+      <!-- Transaction Receipt Card -->
+      <div class="receipt-card">
+        <div class="receipt-header">
+          <span class="receipt-tag">OFFICIAL RECEIPT</span>
+          <span class="receipt-status">✓ VERIFIED & PAID</span>
+        </div>
+        <div class="receipt-body">
+          <div class="receipt-item">
+            <span class="label">Transaction ID:</span>
+            <span class="val font-mono">{{ lastTransaction.id }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Amount Paid:</span>
+            <span class="val highlight">{{ lastTransaction.amount }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Plan:</span>
+            <span class="val">{{ lastTransaction.planName }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Method:</span>
+            <span class="val">{{ lastTransaction.method }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Post Credits Unlocked:</span>
+            <span class="val badge-credit">+{{ lastTransaction.creditsAdded === 999 ? 'Unlimited VIP' :
+              lastTransaction.creditsAdded + ' Posts' }}</span>
+          </div>
+          <div class="receipt-item">
+            <span class="label">Date & Time:</span>
+            <span class="val">{{ lastTransaction.date }}</span>
+          </div>
+
+          <!-- Customer Billing Info in Receipt -->
+          <div class="receipt-customer-section">
+            <div class="receipt-section-divider">BILLED TO</div>
+            <div class="receipt-item">
+              <span class="label">Name:</span>
+              <span class="val">{{ lastTransaction.customerName }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="label">Email:</span>
+              <span class="val">{{ lastTransaction.customerEmail }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="label">Mobile:</span>
+              <span class="val">+91 {{ lastTransaction.customerMobile }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="label">Address:</span>
+              <span class="val">{{ lastTransaction.customerAddress }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="label">City:</span>
+              <span class="val">{{ lastTransaction.customerCity }} — {{ lastTransaction.customerPincode }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="success-action-group">
+        <button class="btn-create-post-cta" (click)="proceedToCreatePostFromPayment()">
+          <span>✍️ Continue to Create Post Now</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: Create / Edit Post Dialog                               -->
+<!-- ============================================================== -->
+<div *ngIf="showPostModal" class="modal-backdrop" (click)="closePostModal()">
+  <div class="modal-card form-dialog animate-scale-in" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <div class="modal-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
+        <div>
+          <h2 class="modal-title">{{ isEditMode ? 'Edit Post #' + postForm.id : 'Publish New Post' }}</h2>
+          <p class="modal-subtitle">{{ isEditMode ? 'Modify post details.' : 'Share your story with the community.' }}
+          </p>
+        </div>
+      </div>
+      <button class="btn-close-modal" (click)="closePostModal()">&times;</button>
+    </div>
+
+    <form (ngSubmit)="savePost()" class="modal-form">
+      <!-- Title with Character Counter -->
+      <div class="form-group">
+        <div class="form-label-row">
+          <label class="form-label" for="post-title">Title <span class="required">*</span></label>
+          <span class="form-char-counter">{{ postForm.title.length }}/120</span>
+        </div>
+        <input id="post-title" type="text" maxlength="120" [(ngModel)]="postForm.title" name="title"
+          placeholder="Enter engaging post title..." class="form-control" required />
+      </div>
+
+      <!-- Author ID with Dynamic Avatar Preview -->
+      <div class="form-group">
+        <label class="form-label" for="post-user">Author Assignment</label>
+        <div class="author-select-preview-wrap">
+          <div class="composer-author-avatar" [style.background]="getUserAvatarGradient(postForm.userId)">
+            U{{ postForm.userId }}
+          </div>
+          <select id="post-user" [(ngModel)]="postForm.userId" name="userId" class="form-control select-control">
+            <option *ngFor="let uid of userList" [value]="uid">User #{{ uid }} (Verified Author)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dynamic Clickable Tag Suggestions -->
+      <div class="form-group">
+        <label class="form-label" for="post-tags">Tags (Click below to toggle or type comma separated)</label>
+        <input id="post-tags" type="text" [(ngModel)]="postForm.tagsString" name="tagsString"
+          placeholder="technology, webdev, ai" class="form-control" />
+
+        <div class="composer-tag-chips">
+          <button type="button" *ngFor="let tag of popularTagList" class="composer-tag-chip"
+            [class.active]="isTagSelectedInForm(tag)" (click)="toggleTagInForm(tag)">
+            #{{ tag }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Content with Word Counter & Read Time -->
+      <div class="form-group">
+        <div class="form-label-row">
+          <label class="form-label" for="post-body">Content <span class="required">*</span></label>
+          <span class="form-char-counter">{{ getPostWordCount() }} words &bull; {{ getEstimatedReadTime(postForm.body)
+            }}</span>
+        </div>
+        <textarea id="post-body" [(ngModel)]="postForm.body" name="body" rows="6"
+          placeholder="Write your article / thoughts here..." class="form-control" required></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closePostModal()" [disabled]="saving">Cancel</button>
+        <button type="submit" class="btn-primary"
+          [disabled]="saving || !postForm.title.trim() || !postForm.body.trim()">
+          <span *ngIf="saving" class="spinner-small"></span>
+          <span>{{ saving ? 'Saving...' : (isEditMode ? 'Update Post' : 'Publish Post') }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: Delete Confirmation Dialog                              -->
+<!-- ============================================================== -->
+<div *ngIf="showDeleteModal" class="modal-backdrop" (click)="cancelDelete()">
+  <div class="modal-card confirm-dialog" (click)="$event.stopPropagation()">
+    <div class="confirm-icon-danger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"></polyline>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        <line x1="10" y1="11" x2="10" y2="17"></line>
+        <line x1="14" y1="11" x2="14" y2="17"></line>
+      </svg>
+    </div>
+    <h3 class="confirm-title">Delete Post #{{ postToDelete?.id }}?</h3>
+    <p class="confirm-desc">Are you sure you want to delete "<strong>{{ postToDelete?.title }}</strong>"? This will call
+      the DummyJSON DELETE endpoint.</p>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cancelDelete()" [disabled]="deleting">Cancel</button>
+      <button class="btn-danger" (click)="executeDelete()" [disabled]="deleting">
+        <span *ngIf="deleting" class="spinner-small"></span>
+        <span>{{ deleting ? 'Deleting...' : 'Yes, Delete Post' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
